@@ -3,9 +3,9 @@ import * as path from 'path';
 import { fetchHatena } from './fetchers/hatena';
 import { fetchHackerNews } from './fetchers/hackernews';
 import { fetchReddit } from './fetchers/reddit';
-import { scoreArticles, learnFromIssue } from './ai/openai';
+import { scoreArticles, learnFromIssue } from './ai/gemini';
 import { createIssue, fetchRecentIssues } from './github/issue';
-import { Persona } from './types';
+import { Persona, Article } from './types';
 
 const PERSONA_PATH = path.join(__dirname, '../../data/persona.json');
 
@@ -54,7 +54,7 @@ async function handleCreateIssue() {
     const dateStr = new Date().toISOString().split('T')[0];
     let markdown = `Here are today's recommended news articles based on your current interests.\n\nPlease check off \`[x]\` the ones you read so that the system can learn your evolving persona.\n\n`;
 
-    for (const article of top10) {
+    for (const article of top10 as (Article & { summary?: string })[]) {
         markdown += `- [ ] [${article.title}](${article.url}) (Source: ${article.source})\n`;
         if (article.summary) {
             markdown += `  - *${article.summary}*\n`;
@@ -88,14 +88,14 @@ async function handleLearn() {
     // Let's just pick the most recent one.
     const latestIssue = newsIssues[0];
 
-    if (!latestIssue.body.includes('[x]')) {
+    if (!latestIssue.body || !latestIssue.body.includes('[x]')) {
         console.log("User didn't read any articles (no [x] found). Nothing to learn.");
         return;
     }
 
     console.log(`Learning from Issue #${latestIssue.number}: ${latestIssue.title}`);
     const currentPersona = getPersona();
-    const newPersona = await learnFromIssue(latestIssue.body, currentPersona);
+    const newPersona = await learnFromIssue(latestIssue.body as string, currentPersona);
 
     savePersona(newPersona);
     console.log("Persona successfully updated.");

@@ -22,12 +22,12 @@
   "homepage": "https://github.com/morphosync102/NewsPicker#readme",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.79.0",
+    "@google/generative-ai": "^0.24.1",
     "@octokit/rest": "^22.0.1",
     "@types/node": "^25.5.0",
     "axios": "^1.13.6",
     "cheerio": "^1.2.0",
     "dotenv": "^17.3.1",
-    "openai": "^6.31.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   }
