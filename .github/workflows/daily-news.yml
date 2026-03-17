@@ -1,0 +1,33 @@
+name: Daily NewsPicker
+
+on:
+  schedule:
+    # Runs at 21:00 UTC, which is 06:00 JST
+    - cron: '0 21 * * *'
+  workflow_dispatch: # Allows manual triggering
+  
+jobs:
+  create-issue:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+      
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci || npm install
+        
+      - name: Run NewsPicker
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: npm start create-issue
