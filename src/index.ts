@@ -7,7 +7,7 @@ import { scoreArticles, learnFromIssue } from './ai/gemini';
 import { createIssue, fetchRecentIssues } from './github/issue';
 import { Persona, Article } from './types';
 
-const PERSONA_PATH = path.join(__dirname, '../../data/persona.json');
+const PERSONA_PATH = path.join(process.cwd(), 'data/persona.json');
 
 function getPersona(): Persona {
     const content = fs.readFileSync(PERSONA_PATH, 'utf-8');

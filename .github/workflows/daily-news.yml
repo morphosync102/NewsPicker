@@ -26,8 +26,12 @@ jobs:
       - name: Install dependencies
         run: npm ci || npm install
         
+      - name: Build TypeScript
+        run: npx tsc
+        
       - name: Run NewsPicker
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        run: npm start create-issue
+        run: node dist/index.js create-issue
