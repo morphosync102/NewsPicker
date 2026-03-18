@@ -11,7 +11,7 @@ function getGemini() {
 
 export async function scoreArticles(articles: Article[], persona: Persona): Promise<(Article & { summary: string })[]> {
     const genAI = getGemini();
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
 
     const prompt = `You are an AI assistant that curates news based on a specific persona.
 Persona Interests:
@@ -64,7 +64,7 @@ ${articles.map(a => `Title: ${a.title}\nURL: ${a.url}\nSource: ${a.source}\n`).j
 
 export async function learnFromIssue(issueBody: string, currentPersona: Persona): Promise<Persona> {
     const genAI = getGemini();
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
 
     const prompt = `You are an AI that updates a user's reading interests (persona) based on what articles they checked as read.
 Current Persona Interests:

@@ -15,8 +15,8 @@ export async function fetchReddit(): Promise<Article[]> {
 
     for (const subreddit of SUBREDDITS) {
         try {
-            const { data } = await axios.get(`https://www.reddit.com/r/${subreddit}/hot.json?limit=5`, {
-                headers: { 'User-Agent': 'NewsPicker/1.0' }
+            const { data } = await axios.get(`https://old.reddit.com/r/${subreddit}/hot.json?limit=5`, {
+                headers: { 'User-Agent': 'NewsPicker/1.0 (news aggregation bot)' }
             });
 
             const children = data?.data?.children || [];
