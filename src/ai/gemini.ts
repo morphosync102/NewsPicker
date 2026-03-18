@@ -1,5 +1,5 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { Article, Persona } from '../types';
+import { Article, ScoredArticle, Persona } from '../types';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
@@ -9,23 +9,36 @@ function getGemini() {
     return new GoogleGenerativeAI(key);
 }
 
-export async function scoreArticles(articles: Article[], persona: Persona): Promise<(Article & { summary: string })[]> {
+export async function scoreArticles(articles: Article[], persona: Persona): Promise<ScoredArticle[]> {
     const genAI = getGemini();
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
 
-    const prompt = `You are an AI assistant that curates news based on a specific persona.
-Persona Interests:
+    const prompt = `あなたはユーザーのペルソナ(興味関心)に基づいてニュース記事をキュレーションするAIです。
+
+【ユーザーの興味領域】
 ${persona.interests.join('\n')}
 
-Languages Read:
+【対応言語】
 ${persona.languages.join(', ')}
 
-Here are several articles. Please score them from 1 to 10 based on how well they match the persona's interests. 
-Also provide a 1-sentence summary for the top 10 articles.
-Respond in pure JSON format without markdown blocks. Return an object with an "articles" key containing an array of objects. Each object should have 'url', 'score', and 'summary' properties.
+以下の記事リストを分析し、ユーザーの興味に合う上位15件を選んでください。
+各記事について以下の情報を付与してください：
 
-Articles:
-${articles.map(a => `Title: ${a.title}\nURL: ${a.url}\nSource: ${a.source}\n`).join('---\n')}
+- interest: 興味度を★で表現
+  - ★★★: 興味領域に直接関連（AI×セキュリティ、OSS、個人開発、キャリアなど）
+  - ★★: 間接的に関連（技術トレンド全般、エンジニアリング文化）
+  - ★: 一般的なIT/技術ニュース
+- category: カテゴリ（AI / セキュリティ / JavaScript / 技術 / OSS / キャリア / デザイン / 社会 など）
+- memo: 発信に活用できるポイントや、なぜ注目に値するかを短く日本語で（15文字程度）
+- summary: 1文の要約（日本語）
+
+英語タイトルは日本語に翻訳してください。
+
+純粋なJSON形式で、markdownブロックなしで返してください。
+フォーマット: { "articles": [{ "url": "...", "title_ja": "...", "score": 9, "interest": "★★★", "category": "AI", "memo": "...", "summary": "..." }] }
+
+【記事リスト】
+${articles.map(a => `Title: ${a.title}\nURL: ${a.url}\nSource: ${a.source}\nScore: ${a.score || 'N/A'}\n`).join('---\n')}
 `;
 
     console.log("[AI] Calling Gemini API for scoring...");
@@ -33,10 +46,10 @@ ${articles.map(a => `Title: ${a.title}\nURL: ${a.url}\nSource: ${a.source}\n`).j
     let content = result.response.text();
     console.log(`[AI] Raw response length: ${content.length} chars`);
 
-    // Strip markdown formatting if Gemini included it despite instructions
+    // Strip markdown formatting if Gemini included it
     content = content.replace(/^```json\s*\n?/, '').replace(/\n?\s*```$/, '');
 
-    let scoredData: { url: string, score: number, summary: string }[] = [];
+    let scoredData: { url: string, title_ja?: string, score: number, interest: string, category: string, memo: string, summary: string }[] = [];
     try {
         const raw = JSON.parse(content);
         scoredData = Array.isArray(raw) ? raw : (raw.articles || Object.values(raw)[0] || []);
@@ -52,31 +65,40 @@ ${articles.map(a => `Title: ${a.title}\nURL: ${a.url}\nSource: ${a.source}\n`).j
     return articles
         .map(a => {
             const scoring = scoredMap.get(a.url);
+            if (!scoring) return null;
             return {
                 ...a,
-                score: scoring?.score || 0,
-                summary: scoring?.summary || ''
+                title: scoring.title_ja || a.title,
+                score: scoring.score || 0,
+                interest: scoring.interest || '★',
+                category: scoring.category || '技術',
+                memo: scoring.memo || '',
+                summary: scoring.summary || ''
             };
         })
-        .sort((a, b) => b.score - a.score)
-        .slice(0, 10);
+        .filter((a): a is ScoredArticle => a !== null)
+        .sort((a, b) => (b.score || 0) - (a.score || 0))
+        .slice(0, 15);
 }
 
 export async function learnFromIssue(issueBody: string, currentPersona: Persona): Promise<Persona> {
     const genAI = getGemini();
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
 
-    const prompt = `You are an AI that updates a user's reading interests (persona) based on what articles they checked as read.
-Current Persona Interests:
+    const prompt = `あなたはユーザーの読書傾向を分析し、興味関心プロファイルを更新するAIです。
+
+【現在の興味領域】
 ${currentPersona.interests.join('\n')}
 
-Here is the markdown checklist of yesterday's recommended articles.
-Items marked with [x] were read by the user. Items marked with [ ] were ignored.
-Analyze the patterns of what they read vs ignored, and output an updated JSON list of interests. Keep it concise (around 5 to 10 broad interests topics).
+以下は昨日のおすすめ記事のチェックリストです。
+[x] がついた記事はユーザーが読んだもの、[ ] は無視したものです。
+読んだもの・無視したものの傾向を分析し、更新された興味領域リストをJSON形式で出力してください。
+5〜10個程度の簡潔なトピックにまとめてください。
 
-Return pure JSON without markdown blocks. Format: { "interests": ["topic1", "topic2"] }
+純粋なJSON形式で、markdownブロックなしで返してください。
+フォーマット: { "interests": ["topic1", "topic2"] }
 
-Markdown content:
+【チェックリスト】
 ${issueBody}`;
 
     console.log("[AI] Calling Gemini API for persona learning...");
@@ -84,7 +106,6 @@ ${issueBody}`;
     let content = result.response.text();
     console.log(`[AI] Raw response length: ${content.length} chars`);
 
-    // Strip markdown formatting if Gemini included it
     content = content.replace(/^```json\s*\n?/, '').replace(/\n?\s*```$/, '');
 
     try {

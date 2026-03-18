@@ -4,7 +4,7 @@ import { fetchHatena } from './fetchers/hatena';
 import { fetchHackerNews } from './fetchers/hackernews';
 import { scoreArticles, learnFromIssue } from './ai/gemini';
 import { createIssue, fetchRecentIssues } from './github/issue';
-import { Persona, Article } from './types';
+import { Persona, Article, ScoredArticle } from './types';
 
 const PERSONA_PATH = path.join(process.cwd(), 'data/persona.json');
 
@@ -23,10 +23,53 @@ function savePersona(persona: Persona) {
     fs.writeFileSync(PERSONA_PATH, JSON.stringify(persona, null, 2), 'utf-8');
 }
 
+function buildIssueBody(hatenaArticles: ScoredArticle[], hnArticles: ScoredArticle[], persona: Persona): string {
+    let md = '';
+
+    // --- はてブIT セクション ---
+    if (hatenaArticles.length > 0) {
+        md += `## はてブIT（日本市場）\n\n`;
+        md += `### 注目トピック\n\n`;
+        md += `| タイトル | ブクマ数 | 興味度 | カテゴリ | メモ |\n`;
+        md += `|---------|---------|--------|---------|------|\n`;
+        for (const a of hatenaArticles) {
+            const scoreStr = a.score ? `${a.score}` : '-';
+            md += `| [${a.title}](${a.url}) | ${scoreStr} | ${a.interest} | ${a.category} | ${a.memo} |\n`;
+        }
+        md += `\n`;
+    }
+
+    // --- Hacker News セクション ---
+    if (hnArticles.length > 0) {
+        md += `## Hacker News（グローバル）\n\n`;
+        md += `### 注目トピック\n\n`;
+        md += `| タイトル | ポイント | 興味度 | カテゴリ | メモ |\n`;
+        md += `|---------|---------|--------|---------|------|\n`;
+        for (const a of hnArticles) {
+            const scoreStr = a.score ? `${a.score}pt` : '-';
+            md += `| [${a.title}](${a.commentsUrl || a.url}) | ${scoreStr} | ${a.interest} | ${a.category} | ${a.memo} |\n`;
+        }
+        md += `\n`;
+    }
+
+    // --- 既読チェック セクション ---
+    const allArticles = [...hatenaArticles, ...hnArticles];
+    md += `---\n\n`;
+    md += `## 📖 既読チェック\n\n`;
+    md += `読んだ記事にチェックを入れてください。ペルソナの学習に使われます。\n\n`;
+    for (const a of allArticles) {
+        md += `- [ ] ${a.title}\n`;
+    }
+
+    md += `\n---\n`;
+    md += `\n*現在のペルソナ: ${persona.interests.join(', ')}*\n`;
+
+    return md;
+}
+
 async function handleCreateIssue() {
     console.log("=== Starting NewsPicker Issue Creation ===");
 
-    // Check required env vars upfront
     if (!process.env.GEMINI_API_KEY) {
         throw new Error("GEMINI_API_KEY is not set! Please add it to repository secrets.");
     }
@@ -37,7 +80,6 @@ async function handleCreateIssue() {
         throw new Error("GITHUB_REPOSITORY is not set!");
     }
     console.log(`[DEBUG] GITHUB_REPOSITORY = ${process.env.GITHUB_REPOSITORY}`);
-    console.log(`[DEBUG] GEMINI_API_KEY is set (length: ${process.env.GEMINI_API_KEY.length})`);
 
     console.log("[1/4] Fetching articles from all sources...");
 
@@ -62,12 +104,12 @@ async function handleCreateIssue() {
     console.log(`[2/4] Total articles fetched: ${allArticles.length}`);
 
     if (allArticles.length === 0) {
-        throw new Error("No articles were fetched from any source. All fetchers failed or returned empty.");
+        throw new Error("No articles were fetched from any source.");
     }
 
     const persona = getPersona();
 
-    // Take a random sample to score (max 50 to avoid token limits)
+    // Shuffle and take a sample to avoid token limits
     const shuffled = allArticles.sort(() => 0.5 - Math.random());
     const toScore = shuffled.slice(0, 50);
 
@@ -76,25 +118,15 @@ async function handleCreateIssue() {
     console.log(`  - Scored results: ${scored.length} articles returned`);
 
     if (scored.length === 0) {
-        throw new Error("AI scoring returned 0 articles. Check GEMINI_API_KEY and API response.");
+        throw new Error("AI scoring returned 0 articles.");
     }
 
-    const top10 = scored.slice(0, 10);
+    // Split by source
+    const hatenaScored = scored.filter(a => a.source === 'Hatena');
+    const hnScored = scored.filter(a => a.source === 'HackerNews');
 
     const dateStr = new Date().toISOString().split('T')[0];
-    let markdown = `Here are today's recommended news articles based on your current interests.\n\nPlease check off \`[x]\` the ones you read so that the system can learn your evolving persona.\n\n`;
-
-    for (const article of top10 as (Article & { summary?: string })[]) {
-        markdown += `- [ ] [${article.title}](${article.url}) (Source: ${article.source})\n`;
-        if (article.summary) {
-            markdown += `  - *${article.summary}*\n`;
-        }
-        if (article.commentsUrl && article.commentsUrl !== article.url) {
-            markdown += `  - [Comments](${article.commentsUrl})\n`;
-        }
-    }
-
-    markdown += `\n\n*(Current Persona: ${persona.interests.join(', ')})*`;
+    const markdown = buildIssueBody(hatenaScored, hnScored, persona);
 
     console.log("[4/4] Creating GitHub Issue...");
     const issue = await createIssue(`📰 Daily NewsPicker: ${dateStr}`, markdown);
@@ -146,7 +178,6 @@ async function handleLearn() {
 async function main() {
     const command = process.argv[2];
     console.log(`[DEBUG] Command: ${command}`);
-    console.log(`[DEBUG] process.argv: ${JSON.stringify(process.argv)}`);
     console.log(`[DEBUG] CWD: ${process.cwd()}`);
 
     if (command === 'create-issue') {
@@ -159,7 +190,6 @@ async function main() {
     }
 }
 
-// IMPORTANT: Crash loudly on errors so GitHub Actions marks the run as failed
 main().catch(err => {
     console.error("❌ FATAL ERROR:", err);
     process.exit(1);
