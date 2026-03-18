@@ -2,7 +2,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { fetchHatena } from './fetchers/hatena';
 import { fetchHackerNews } from './fetchers/hackernews';
-import { fetchReddit } from './fetchers/reddit';
 import { scoreArticles, learnFromIssue } from './ai/gemini';
 import { createIssue, fetchRecentIssues } from './github/issue';
 import { Persona, Article } from './types';
@@ -44,7 +43,6 @@ async function handleCreateIssue() {
 
     let hatena: Article[] = [];
     let hn: Article[] = [];
-    let reddit: Article[] = [];
 
     try {
         hatena = await fetchHatena();
@@ -60,14 +58,7 @@ async function handleCreateIssue() {
         console.error("  - HackerNews fetch FAILED:", e);
     }
 
-    try {
-        reddit = await fetchReddit();
-        console.log(`  - Reddit: ${reddit.length} articles`);
-    } catch (e) {
-        console.error("  - Reddit fetch FAILED:", e);
-    }
-
-    const allArticles = [...hatena, ...hn, ...reddit];
+    const allArticles = [...hatena, ...hn];
     console.log(`[2/4] Total articles fetched: ${allArticles.length}`);
 
     if (allArticles.length === 0) {
