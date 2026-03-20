@@ -24,35 +24,43 @@ function savePersona(persona: Persona) {
     fs.writeFileSync(PERSONA_PATH, JSON.stringify(persona, null, 2), 'utf-8');
 }
 
-function buildIssueBody(hatenaArticles: ScoredArticle[], hnArticles: ScoredArticle[], secArticles: ScoredArticle[], persona: Persona): string {
+function getSourceTag(a: ScoredArticle): string {
+    if (a.url.includes('security-next')) return 'SEC';
+    if (a.source === 'HackerNews') return 'HN';
+    return 'はてブ';
+}
+
+function formatArticleLine(a: ScoredArticle): string {
+    const source = getSourceTag(a);
+    const scoreStr = a.score
+        ? (a.source === 'HackerNews' ? `${a.score}pt` : `${a.score}users`)
+        : '';
+    const scoreSection = scoreStr ? ` | ${scoreStr}` : '';
+    return `- [ ] [${a.title}](${a.commentsUrl || a.url}) | \`${source}\`${scoreSection} | ${a.category} | ${a.memo}\n`;
+}
+
+function buildIssueBody(scored: ScoredArticle[], persona: Persona): string {
     let md = `> 読んだ記事にチェックを入れてください。ペルソナの学習に使われます。\n\n`;
 
-    // --- はてブIT セクション ---
-    if (hatenaArticles.length > 0) {
-        md += `## はてブIT（日本市場）\n\n`;
-        for (const a of hatenaArticles) {
-            const scoreStr = a.score ? `${a.score} users` : '';
-            md += `- [ ] [${a.title}](${a.url}) | ${scoreStr} | ${a.interest} | ${a.category} | ${a.memo}\n`;
-        }
+    const high = scored.filter(a => a.interest === '★★★');
+    const mid = scored.filter(a => a.interest === '★★');
+    const low = scored.filter(a => a.interest !== '★★★' && a.interest !== '★★');
+
+    if (high.length > 0) {
+        md += `## ★★★ 注目度: 高\n\n`;
+        for (const a of high) md += formatArticleLine(a);
         md += `\n`;
     }
 
-    // --- Hacker News セクション ---
-    if (hnArticles.length > 0) {
-        md += `## Hacker News（グローバル）\n\n`;
-        for (const a of hnArticles) {
-            const scoreStr = a.score ? `${a.score}pt` : '';
-            md += `- [ ] [${a.title}](${a.commentsUrl || a.url}) | ${scoreStr} | ${a.interest} | ${a.category} | ${a.memo}\n`;
-        }
+    if (mid.length > 0) {
+        md += `## ★★ 注目度: 中\n\n`;
+        for (const a of mid) md += formatArticleLine(a);
         md += `\n`;
     }
 
-    // --- Security News セクション ---
-    if (secArticles.length > 0) {
-        md += `## Security News\n\n`;
-        for (const a of secArticles) {
-            md += `- [ ] [${a.title}](${a.url}) | ${a.interest} | ${a.category} | ${a.memo}\n`;
-        }
+    if (low.length > 0) {
+        md += `## ★ 注目度: 低\n\n`;
+        for (const a of low) md += formatArticleLine(a);
         md += `\n`;
     }
 
@@ -124,13 +132,8 @@ async function handleCreateIssue() {
         throw new Error("AI scoring returned 0 articles.");
     }
 
-    // Split by source
-    const hatenaScored = scored.filter(a => a.source === 'Hatena' && !a.url.includes('security-next'));
-    const hnScored = scored.filter(a => a.source === 'HackerNews');
-    const secScored = scored.filter(a => a.url.includes('security-next'));
-
     const dateStr = new Date().toISOString().split('T')[0];
-    const markdown = buildIssueBody(hatenaScored, hnScored, secScored, persona);
+    const markdown = buildIssueBody(scored, persona);
 
     console.log("[4/4] Creating GitHub Issue...");
     const issue = await createIssue(`📰 Daily NewsPicker: ${dateStr}`, markdown);
