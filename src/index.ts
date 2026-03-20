@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { fetchHatena } from './fetchers/hatena';
 import { fetchHackerNews } from './fetchers/hackernews';
+import { fetchSecurityNext } from './fetchers/security-next';
 import { scoreArticles, learnFromIssue } from './ai/gemini';
 import { createIssue, fetchRecentIssues } from './github/issue';
 import { Persona, Article, ScoredArticle } from './types';
@@ -23,18 +24,15 @@ function savePersona(persona: Persona) {
     fs.writeFileSync(PERSONA_PATH, JSON.stringify(persona, null, 2), 'utf-8');
 }
 
-function buildIssueBody(hatenaArticles: ScoredArticle[], hnArticles: ScoredArticle[], persona: Persona): string {
-    let md = '';
+function buildIssueBody(hatenaArticles: ScoredArticle[], hnArticles: ScoredArticle[], secArticles: ScoredArticle[], persona: Persona): string {
+    let md = `> 読んだ記事にチェックを入れてください。ペルソナの学習に使われます。\n\n`;
 
     // --- はてブIT セクション ---
     if (hatenaArticles.length > 0) {
         md += `## はてブIT（日本市場）\n\n`;
-        md += `### 注目トピック\n\n`;
-        md += `| タイトル | ブクマ数 | 興味度 | カテゴリ | メモ |\n`;
-        md += `|---------|---------|--------|---------|------|\n`;
         for (const a of hatenaArticles) {
-            const scoreStr = a.score ? `${a.score}` : '-';
-            md += `| [${a.title}](${a.url}) | ${scoreStr} | ${a.interest} | ${a.category} | ${a.memo} |\n`;
+            const scoreStr = a.score ? `${a.score} users` : '';
+            md += `- [ ] [${a.title}](${a.url}) | ${scoreStr} | ${a.interest} | ${a.category} | ${a.memo}\n`;
         }
         md += `\n`;
     }
@@ -42,26 +40,23 @@ function buildIssueBody(hatenaArticles: ScoredArticle[], hnArticles: ScoredArtic
     // --- Hacker News セクション ---
     if (hnArticles.length > 0) {
         md += `## Hacker News（グローバル）\n\n`;
-        md += `### 注目トピック\n\n`;
-        md += `| タイトル | ポイント | 興味度 | カテゴリ | メモ |\n`;
-        md += `|---------|---------|--------|---------|------|\n`;
         for (const a of hnArticles) {
-            const scoreStr = a.score ? `${a.score}pt` : '-';
-            md += `| [${a.title}](${a.commentsUrl || a.url}) | ${scoreStr} | ${a.interest} | ${a.category} | ${a.memo} |\n`;
+            const scoreStr = a.score ? `${a.score}pt` : '';
+            md += `- [ ] [${a.title}](${a.commentsUrl || a.url}) | ${scoreStr} | ${a.interest} | ${a.category} | ${a.memo}\n`;
         }
         md += `\n`;
     }
 
-    // --- 既読チェック セクション ---
-    const allArticles = [...hatenaArticles, ...hnArticles];
-    md += `---\n\n`;
-    md += `## 📖 既読チェック\n\n`;
-    md += `読んだ記事にチェックを入れてください。ペルソナの学習に使われます。\n\n`;
-    for (const a of allArticles) {
-        md += `- [ ] ${a.title}\n`;
+    // --- Security News セクション ---
+    if (secArticles.length > 0) {
+        md += `## Security News\n\n`;
+        for (const a of secArticles) {
+            md += `- [ ] [${a.title}](${a.url}) | ${a.interest} | ${a.category} | ${a.memo}\n`;
+        }
+        md += `\n`;
     }
 
-    md += `\n---\n`;
+    md += `---\n`;
     md += `\n*現在のペルソナ: ${persona.interests.join(', ')}*\n`;
 
     return md;
@@ -85,6 +80,7 @@ async function handleCreateIssue() {
 
     let hatena: Article[] = [];
     let hn: Article[] = [];
+    let sec: Article[] = [];
 
     try {
         hatena = await fetchHatena();
@@ -100,7 +96,14 @@ async function handleCreateIssue() {
         console.error("  - HackerNews fetch FAILED:", e);
     }
 
-    const allArticles = [...hatena, ...hn];
+    try {
+        sec = await fetchSecurityNext();
+        console.log(`  - SecurityNext: ${sec.length} articles`);
+    } catch (e) {
+        console.error("  - SecurityNext fetch FAILED:", e);
+    }
+
+    const allArticles = [...hatena, ...hn, ...sec];
     console.log(`[2/4] Total articles fetched: ${allArticles.length}`);
 
     if (allArticles.length === 0) {
@@ -122,11 +125,12 @@ async function handleCreateIssue() {
     }
 
     // Split by source
-    const hatenaScored = scored.filter(a => a.source === 'Hatena');
+    const hatenaScored = scored.filter(a => a.source === 'Hatena' && !a.url.includes('security-next'));
     const hnScored = scored.filter(a => a.source === 'HackerNews');
+    const secScored = scored.filter(a => a.url.includes('security-next'));
 
     const dateStr = new Date().toISOString().split('T')[0];
-    const markdown = buildIssueBody(hatenaScored, hnScored, persona);
+    const markdown = buildIssueBody(hatenaScored, hnScored, secScored, persona);
 
     console.log("[4/4] Creating GitHub Issue...");
     const issue = await createIssue(`📰 Daily NewsPicker: ${dateStr}`, markdown);
