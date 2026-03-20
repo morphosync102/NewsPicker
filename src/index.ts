@@ -3,6 +3,9 @@ import * as path from 'path';
 import { fetchHatena } from './fetchers/hatena';
 import { fetchHackerNews } from './fetchers/hackernews';
 import { fetchSecurityNext } from './fetchers/security-next';
+import { fetchJPCert } from './fetchers/jpcert';
+import { fetchScanNetSecurity } from './fetchers/scannetsecurity';
+import { fetchIPA } from './fetchers/ipa';
 import { scoreArticles, learnFromIssue } from './ai/gemini';
 import { createIssue, fetchRecentIssues } from './github/issue';
 import { Persona, Article, ScoredArticle } from './types';
@@ -26,6 +29,9 @@ function savePersona(persona: Persona) {
 
 function getSourceTag(a: ScoredArticle): string {
     if (a.url.includes('security-next')) return 'SEC';
+    if (a.url.includes('jpcert.or.jp')) return 'JPCERT';
+    if (a.url.includes('scan.netsecurity.ne.jp')) return 'SCAN';
+    if (a.url.includes('ipa.go.jp')) return 'IPA';
     if (a.source === 'HackerNews') return 'HN';
     return 'はてブ';
 }
@@ -88,30 +94,19 @@ async function handleCreateIssue() {
 
     let hatena: Article[] = [];
     let hn: Article[] = [];
-    let sec: Article[] = [];
+    let secNext: Article[] = [];
+    let jpcert: Article[] = [];
+    let scannet: Article[] = [];
+    let ipa: Article[] = [];
 
-    try {
-        hatena = await fetchHatena();
-        console.log(`  - Hatena: ${hatena.length} articles`);
-    } catch (e) {
-        console.error("  - Hatena fetch FAILED:", e);
-    }
+    try { hatena = await fetchHatena(); console.log(`  - Hatena: ${hatena.length} articles`); } catch (e) { console.error("  - Hatena fetch FAILED:", e); }
+    try { hn = await fetchHackerNews(); console.log(`  - HackerNews: ${hn.length} articles`); } catch (e) { console.error("  - HackerNews fetch FAILED:", e); }
+    try { secNext = await fetchSecurityNext(); console.log(`  - SecurityNext: ${secNext.length} articles`); } catch (e) { console.error("  - SecurityNext fetch FAILED:", e); }
+    try { jpcert = await fetchJPCert(); console.log(`  - JPCERT/CC: ${jpcert.length} articles`); } catch (e) { console.error("  - JPCERT/CC fetch FAILED:", e); }
+    try { scannet = await fetchScanNetSecurity(); console.log(`  - ScanNetSecurity: ${scannet.length} articles`); } catch (e) { console.error("  - ScanNetSecurity fetch FAILED:", e); }
+    try { ipa = await fetchIPA(); console.log(`  - IPA: ${ipa.length} articles`); } catch (e) { console.error("  - IPA fetch FAILED:", e); }
 
-    try {
-        hn = await fetchHackerNews();
-        console.log(`  - HackerNews: ${hn.length} articles`);
-    } catch (e) {
-        console.error("  - HackerNews fetch FAILED:", e);
-    }
-
-    try {
-        sec = await fetchSecurityNext();
-        console.log(`  - SecurityNext: ${sec.length} articles`);
-    } catch (e) {
-        console.error("  - SecurityNext fetch FAILED:", e);
-    }
-
-    const allArticles = [...hatena, ...hn, ...sec];
+    const allArticles = [...hatena, ...hn, ...secNext, ...jpcert, ...scannet, ...ipa];
     console.log(`[2/4] Total articles fetched: ${allArticles.length}`);
 
     if (allArticles.length === 0) {
@@ -120,9 +115,9 @@ async function handleCreateIssue() {
 
     const persona = getPersona();
 
-    // Shuffle and take a sample to avoid token limits
+    // Shuffle and take a sample to avoid token limits. Total articles might be large (6 sources * ~10-30 = ~90).
     const shuffled = allArticles.sort(() => 0.5 - Math.random());
-    const toScore = shuffled.slice(0, 50);
+    const toScore = shuffled.slice(0, 60);
 
     console.log(`[3/4] Scoring ${toScore.length} articles using Gemini AI...`);
     const scored = await scoreArticles(toScore, persona);

@@ -1,11 +1,13 @@
 {
     "interests": [
-        "AI (Development and Security applications)",
-        "Web Security / Hacking (OWASP, Vulnerabilities, Supply Chain attacks)",
-        "OSS Development / Community",
-        "Personal Development / SaaS Operation (Technical SEO, Growth Hack, Monetization)",
-        "Career / Philosophy (Financial Independence, Foreign tech companies, Build in Public)",
-        "JavaScript / TypeScript tech stack"
+        "Web Security / Application Security (OWASP, Secure Coding, Vulnerability Research)",
+        "Offensive Security (Penetration Testing, Exploit Development, Bug Bounty)",
+        "Defensive Security (Incident Response, DFIR, Threat Intelligence, SOC)",
+        "Cloud & Infrastructure Security (AWS/GCP/Azure Security, Kubernetes Security, DevSecOps)",
+        "Identity & Access Management (IAM, Zero Trust, Authentication/Authorization)",
+        "Governance, Risk, and Compliance (GRC, Security Policies, Privacy)",
+        "Security News (Breaches, Advisories from JPCERT/CC, IPA, CISA)",
+        "AI Security (LLM Security, Adversarial Machine Learning)"
     ],
     "languages": [
         "Japanese",

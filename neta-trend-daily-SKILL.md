@@ -18,12 +18,14 @@ description: "トレンドネタ収集（NewsPicker連携）"
 ## ユーザープロファイル
 
 `data/persona.json` を読み込み、以下の興味領域を理解する：
-- AI（開発とセキュリティへの応用）
-- Webセキュリティ/ハッキング（OWASP、脆弱性、サプライチェーン攻撃）
-- OSS開発/コミュニティ
-- 個人開発/SaaS運営（Technical SEO、グロースハック、収益化）
-- キャリア/人生哲学（経済的自由、外資転職、Build in Public）
-- JavaScript/TypeScript技術スタック
+- Web Security / Application Security (OWASP, Secure Coding, Vulnerability Research)
+- Offensive Security (Penetration Testing, Exploit Development, Bug Bounty)
+- Defensive Security (Incident Response, DFIR, Threat Intelligence, SOC)
+- Cloud & Infrastructure Security (AWS/GCP/Azure Security, Kubernetes Security, DevSecOps)
+- Identity & Access Management (IAM, Zero Trust, Authentication/Authorization)
+- Governance, Risk, and Compliance (GRC, Security Policies, Privacy)
+- Security News (Breaches, Advisories from JPCERT/CC, IPA, CISA)
+- AI Security (LLM Security, Adversarial Machine Learning)
 
 ※上記は初期値。ペルソナ学習により動的に変化する。
 
@@ -41,24 +43,27 @@ description: "トレンドネタ収集（NewsPicker連携）"
 - 各記事の**タイトル、HNコメントページURL、ポイント数**を取得
 - **タイトルは日本語に翻訳して出力**
 
-### Security News
-- https://www.security-next.com/
+### Security News (国内)
+- **Security-Next**: `https://www.security-next.com/`
+- **JPCERT/CC**: `https://www.jpcert.or.jp/at/` (注意喚起)
+- **ScanNetSecurity**: `https://scan.netsecurity.ne.jp/`
+- **IPA**: `https://www.ipa.go.jp/security/` (セキュリティ関連情報)
 
 ## スコアリング
 
 Gemini AIにより以下の観点で各記事をスコアリング：
 
 **興味度の定義**:
-- ★★★: 興味領域に直接関連（AI×セキュリティ、OSS、個人開発、キャリアなど）
-- ★★: 間接的に関連（技術トレンド全般、エンジニアリング文化）
-- ★: 一般的なIT/技術ニュース
+- ★★★: 興味領域に直接関連（ペネトレーションテスト、インシデント事例、重要な脆弱性速報など）
+- ★★: 間接的に関連（セキュリティガイドライン、法規制、一般的なITトレンド）
+- ★: 一般的なIT/ニュース
 
-**カテゴリ**: AI / セキュリティ / JavaScript / 技術 / OSS / キャリア / デザイン / 社会 等
+**カテゴリ**: セキュリティ速報 / 脆弱性 / アプリケーションセキュリティ / クラウドセキュリティ / エンジニアリング / その他 等
 
 ## 出力フォーマット（GitHub Issue）
 
 記事は**興味度別にグルーピング**して出力する（ソース別ではない）。
-各記事のソースはインラインタグ（`HN`, `はてブ`, `SEC`）で表示。
+各記事のソースはインラインタグ（`HN`, `はてブ`, `SEC`, `JPCERT`, `SCAN`, `IPA`）で表示。
 
 ```markdown
 > 読んだ記事にチェックを入れてください。ペルソナの学習に使われます。
@@ -66,17 +71,17 @@ Gemini AIにより以下の観点で各記事をスコアリング：
 ## ★★★ 注目度: 高
 
 - [ ] [記事タイトル](URL) | `はてブ` | 500users | AI | メモ
-- [ ] [日本語タイトル](HN URL) | `HN` | 451pt | セキュリティ | メモ
-- [ ] [セキュリティニュース](URL) | `SEC` | セキュリティ | メモ
+- [ ] [緊急アラート](URL) | `JPCERT` | セキュリティ速報 | メモ
+- [ ] [セキュリティニュース](URL) | `SCAN` | セキュリティ | メモ
 
 ## ★★ 注目度: 中
 
-- [ ] [記事タイトル](URL) | `はてブ` | 200users | 技術 | メモ
-- [ ] [日本語タイトル](HN URL) | `HN` | 300pt | JavaScript | メモ
+- [ ] [技術記事](URL) | `はてブ` | 200users | エンジニアリング | メモ
+- [ ] [IPAガイドライン改訂](URL) | `IPA` | ガイドライン | メモ
 
 ## ★ 注目度: 低
 
-- [ ] [記事タイトル](URL) | `はてブ` | 100users | 社会 | メモ
+- [ ] [一般ニュース](URL) | `はてブ` | 100users | 社会 | メモ
 ```
 
 ## 注意事項
