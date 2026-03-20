@@ -62,7 +62,7 @@ ${articles.map(a => `Title: ${a.title}\nURL: ${a.url}\nSource: ${a.source}\nScor
 
     const scoredMap = new Map(scoredData.map(d => [d.url, d]));
 
-    return articles
+    const results: ScoredArticle[] = articles
         .map(a => {
             const scoring = scoredMap.get(a.url);
             if (!scoring) return null;
@@ -74,9 +74,11 @@ ${articles.map(a => `Title: ${a.title}\nURL: ${a.url}\nSource: ${a.source}\nScor
                 category: scoring.category || '技術',
                 memo: scoring.memo || '',
                 summary: scoring.summary || ''
-            };
+            } as ScoredArticle;
         })
-        .filter((a): a is ScoredArticle => a !== null)
+        .filter((a): a is ScoredArticle => a !== null);
+
+    return results
         .sort((a, b) => (b.score || 0) - (a.score || 0))
         .slice(0, 15);
 }
