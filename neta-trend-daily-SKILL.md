@@ -29,6 +29,7 @@ description: "トレンドネタ収集（NewsPicker連携）"
 - Governance, Risk, and Compliance (GRC, Security Policies, Privacy)
 - Security News (Breaches, Advisories from JPCERT/CC, IPA, CISA)
 - AI Security (LLM Security, Adversarial Machine Learning)
+- Enterprise Security Solutions & Platforms (EDR, XDR, SIEM, CWPP, CrowdStrike, Splunk, Trend Micro Deep Security, Cybereason)
 
 ※上記は初期値。ペルソナ学習により動的に変化する。
 

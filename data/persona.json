@@ -10,7 +10,8 @@
         "Identity & Access Management (IAM, Zero Trust, Authentication/Authorization)",
         "Governance, Risk, and Compliance (GRC, Security Policies, Privacy)",
         "Security News (Breaches, Advisories from JPCERT/CC, IPA, CISA)",
-        "AI Security (LLM Security, Adversarial Machine Learning)"
+        "AI Security (LLM Security, Adversarial Machine Learning)",
+        "Enterprise Security Solutions & Platforms (EDR, XDR, SIEM, CWPP, CrowdStrike, Splunk, Trend Micro Deep Security, Cybereason)"
     ],
     "languages": [
         "Japanese",
