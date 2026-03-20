@@ -18,6 +18,9 @@ description: "トレンドネタ収集（NewsPicker連携）"
 ## ユーザープロファイル
 
 `data/persona.json` を読み込み、以下の興味領域を理解する：
+- AI（開発とセキュリティへの応用）
+- Webセキュリティ/ハッキング（OWASP、脆弱性、サプライチェーン攻撃）
+- キャリア/人生哲学（経済的自由、外資転職、Build in Public）
 - Web Security / Application Security (OWASP, Secure Coding, Vulnerability Research)
 - Offensive Security (Penetration Testing, Exploit Development, Bug Bounty)
 - Defensive Security (Incident Response, DFIR, Threat Intelligence, SOC)
