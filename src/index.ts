@@ -38,11 +38,7 @@ function getSourceTag(a: ScoredArticle): string {
 
 function formatArticleLine(a: ScoredArticle): string {
     const source = getSourceTag(a);
-    const scoreStr = a.score
-        ? (a.source === 'HackerNews' ? `${a.score}pt` : `${a.score}users`)
-        : '';
-    const scoreSection = scoreStr ? ` | ${scoreStr}` : '';
-    return `- [ ] [${a.title}](${a.commentsUrl || a.url}) | \`${source}\`${scoreSection} | ${a.category} | ${a.memo}\n`;
+    return `- [ ] [${a.title}](${a.commentsUrl || a.url}) | \`${source}\` | ${a.category} | ${a.memo}\n`;
 }
 
 function buildIssueBody(scored: ScoredArticle[], persona: Persona): string {
