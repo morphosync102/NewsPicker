@@ -11,7 +11,10 @@ function getGemini() {
 
 export async function scoreArticles(articles: Article[], persona: Persona): Promise<ScoredArticle[]> {
     const genAI = getGemini();
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
+    const model = genAI.getGenerativeModel({
+        model: "gemini-2.5-flash-lite",
+        generationConfig: { responseMimeType: "application/json" }
+    });
 
     const prompt = `あなたは優秀なITエンジニア向けニュースキュレーターです。
 以下のユーザーの興味領域（ペルソナ）と重み（Weight: 0.0〜1.0）に基づいて、提供された記事リストから読むべき記事をスコアリング抽出してください。Weightが高い（0.7以上）トピックに特に関連するものを高く評価してください。
@@ -22,7 +25,7 @@ ${persona.interests.map(i => `- ${i.topic} (Weight: ${i.weight})`).join('\n')}
 【対応言語】
 ${persona.languages.join(', ')}
 
-以下の記事リストを分析し、ユーザーの興味に合う上位30件を選んでください。
+以下の記事リストを分析し、ユーザーの興味に合うものを最大30件（少なくとも15件程度）選んで抽出してください。
 各記事について以下の情報を付与してください：
 
 - interest: 興味度を★で表現
@@ -35,7 +38,7 @@ ${persona.languages.join(', ')}
 
 英語タイトルは日本語に翻訳してください。
 
-純粋なJSON形式で、markdownブロックなしで返してください。
+指定したJSONスキーマに厳格に従って出力してください。
 フォーマット: { "articles": [{ "url": "...", "title_ja": "...", "score": 9, "interest": "★★★", "category": "AI", "memo": "...", "summary": "..." }] }
 
 【記事リスト】
@@ -46,9 +49,6 @@ ${articles.map(a => `Title: ${a.title}\nURL: ${a.url}\nSource: ${a.source}\nScor
     const result = await model.generateContent(prompt);
     let content = result.response.text();
     console.log(`[AI] Raw response length: ${content.length} chars`);
-
-    // Strip markdown formatting if Gemini included it
-    content = content.replace(/^```json\s*\n?/, '').replace(/\n?\s*```$/, '');
 
     let scoredData: { url: string, title_ja?: string, score: number, interest: string, category: string, memo: string, summary: string }[] = [];
     try {
@@ -103,7 +103,7 @@ ${currentPersona.interests.map(i => `- ${i.topic}: ${i.weight}`).join('\n')}
 3. 計算後の重みが 0.1 を下回ったトピックはリストから削除する
 4. 新しい傾向が明確に見られる場合、新規トピックとして 重み 0.5 で追加してよい
 
-純粋なJSON形式で、markdownブロックなしで返してください。
+指定したJSONスキーマに厳格に従って出力してください。
 フォーマット: { "interests": [ { "topic": "topic_name", "weight": 0.81 } ] }
 
 【チェックリスト】
@@ -113,8 +113,6 @@ ${issueBody}`;
     const result = await model.generateContent(prompt);
     let content = result.response.text();
     console.log(`[AI] Raw response length: ${content.length} chars`);
-
-    content = content.replace(/^```json\s*\n?/, '').replace(/\n?\s*```$/, '');
 
     try {
         const raw = JSON.parse(content);
