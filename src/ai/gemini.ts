@@ -13,10 +13,11 @@ export async function scoreArticles(articles: Article[], persona: Persona): Prom
     const genAI = getGemini();
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
 
-    const prompt = `あなたはユーザーのペルソナ(興味関心)に基づいてニュース記事をキュレーションするAIです。
+    const prompt = `あなたは優秀なITエンジニア向けニュースキュレーターです。
+以下のユーザーの興味領域（ペルソナ）と重み（Weight: 0.0〜1.0）に基づいて、提供された記事リストから読むべき記事をスコアリング抽出してください。Weightが高い（0.7以上）トピックに特に関連するものを高く評価してください。
 
-【ユーザーの興味領域】
-${persona.interests.join('\n')}
+【現在の興味領域と重み】
+${persona.interests.map(i => `- ${i.topic} (Weight: ${i.weight})`).join('\n')}
 
 【対応言語】
 ${persona.languages.join(', ')}
@@ -87,18 +88,23 @@ export async function learnFromIssue(issueBody: string, currentPersona: Persona)
     const genAI = getGemini();
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
 
-    const prompt = `あなたはユーザーの読書傾向を分析し、興味関心プロファイルを更新するAIです。
+    const prompt = `あなたはユーザーの読書傾向を分析し、興味関心プロファイルを長期的に微調整するAIです。
 
-【現在の興味領域】
-${currentPersona.interests.join('\n')}
+【現在の興味領域と重み】
+${currentPersona.interests.map(i => `- ${i.topic}: ${i.weight}`).join('\n')}
 
 以下は昨日のおすすめ記事のチェックリストです。
 [x] がついた記事はユーザーが読んだもの、[ ] は無視したものです。
-読んだもの・無視したものの傾向を分析し、更新された興味領域リストをJSON形式で出力してください。
-5〜10個程度の簡潔なトピックにまとめてください。
+読んだもの・無視したものの傾向を分析し、既存トピックの重み（0.0〜1.0）を調整して更新されたリストをJSON形式で出力してください。
+
+【調整ルール】
+1. 読んだ記事に関連するトピックは、重みを +0.01 加算する
+2. 読まなかった記事に関連するトピックは、重みを -0.01 減算する
+3. 計算後の重みが 0.1 を下回ったトピックはリストから削除する
+4. 新しい傾向が明確に見られる場合、新規トピックとして 重み 0.5 で追加してよい
 
 純粋なJSON形式で、markdownブロックなしで返してください。
-フォーマット: { "interests": ["topic1", "topic2"] }
+フォーマット: { "interests": [ { "topic": "topic_name", "weight": 0.81 } ] }
 
 【チェックリスト】
 ${issueBody}`;

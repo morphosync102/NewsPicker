@@ -17,21 +17,21 @@ description: "トレンドネタ収集（NewsPicker連携）"
 
 ## ユーザープロファイル
 
-`data/persona.json` を読み込み、以下の興味領域を理解する：
-- AI（開発とセキュリティへの応用）
-- Webセキュリティ/ハッキング（OWASP、脆弱性、サプライチェーン攻撃）
-- キャリア/人生哲学（経済的自由、外資転職、Build in Public）
-- Web Security / Application Security (OWASP, Secure Coding, Vulnerability Research)
-- Offensive Security (Penetration Testing, Exploit Development, Bug Bounty)
-- Defensive Security (Incident Response, DFIR, Threat Intelligence, SOC)
-- Cloud & Infrastructure Security (AWS/GCP/Azure Security, Kubernetes Security, DevSecOps)
-- Identity & Access Management (IAM, Zero Trust, Authentication/Authorization)
-- Governance, Risk, and Compliance (GRC, Security Policies, Privacy)
-- Security News (Breaches, Advisories from JPCERT/CC, IPA, CISA)
-- AI Security (LLM Security, Adversarial Machine Learning)
-- Enterprise Security Solutions & Platforms (EDR, XDR, SIEM, CWPP, CrowdStrike, Splunk, Trend Micro Deep Security, Cybereason)
+`data/persona.json` を読み込み、以下の興味領域と重み（Weight: 0.0〜1.0）を理解する：
+- AI（開発とセキュリティへの応用） [Weight: 1.0]
+- Webセキュリティ/ハッキング（OWASP、脆弱性、サプライチェーン攻撃） [Weight: 1.0]
+- キャリア/人生哲学（経済的自由、外資転職、Build in Public） [Weight: 1.0]
+- Web Security / Application Security (OWASP, Secure Coding, Vulnerability Research) [Weight: 1.0]
+- Offensive Security (Penetration Testing, Exploit Development, Bug Bounty) [Weight: 1.0]
+- Defensive Security (Incident Response, DFIR, Threat Intelligence, SOC) [Weight: 1.0]
+- Cloud & Infrastructure Security (AWS/GCP/Azure Security, Kubernetes Security, DevSecOps) [Weight: 1.0]
+- Identity & Access Management (IAM, Zero Trust, Authentication/Authorization) [Weight: 1.0]
+- Governance, Risk, and Compliance (GRC, Security Policies, Privacy) [Weight: 1.0]
+- Security News (Breaches, Advisories from JPCERT/CC, IPA, CISA) [Weight: 1.0]
+- AI Security (LLM Security, Adversarial Machine Learning) [Weight: 1.0]
+- Enterprise Security Solutions & Platforms (EDR, XDR, SIEM, CWPP, CrowdStrike, Splunk, Trend Micro Deep Security, Cybereason) [Weight: 1.0]
 
-※上記は初期値。ペルソナ学習により動的に変化する。
+※上記は初期値。毎日の学習（読んだ記事・読まなかった記事の分析）により、トピックの重みが `±0.01` ずつ動的に変動する。重みが `0.1` を下回ったトピックは削除される。
 
 ## データソース
 

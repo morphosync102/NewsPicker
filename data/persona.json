@@ -1,17 +1,53 @@
 {
     "interests": [
-        "AI（開発とセキュリティへの応用）",
-        "Webセキュリティ/ハッキング（OWASP、脆弱性、サプライチェーン攻撃）",
-        "キャリア/人生哲学（経済的自由、外資転職、Build in Public）",
-        "Web Security / Application Security (OWASP, Secure Coding, Vulnerability Research)",
-        "Offensive Security (Penetration Testing, Exploit Development, Bug Bounty)",
-        "Defensive Security (Incident Response, DFIR, Threat Intelligence, SOC)",
-        "Cloud & Infrastructure Security (AWS/GCP/Azure Security, Kubernetes Security, DevSecOps)",
-        "Identity & Access Management (IAM, Zero Trust, Authentication/Authorization)",
-        "Governance, Risk, and Compliance (GRC, Security Policies, Privacy)",
-        "Security News (Breaches, Advisories from JPCERT/CC, IPA, CISA)",
-        "AI Security (LLM Security, Adversarial Machine Learning)",
-        "Enterprise Security Solutions & Platforms (EDR, XDR, SIEM, CWPP, CrowdStrike, Splunk, Trend Micro Deep Security, Cybereason)"
+        {
+            "topic": "AI（開発とセキュリティへの応用）",
+            "weight": 1.0
+        },
+        {
+            "topic": "Webセキュリティ/ハッキング（OWASP、脆弱性、サプライチェーン攻撃）",
+            "weight": 1.0
+        },
+        {
+            "topic": "キャリア/人生哲学（経済的自由、外資転職、Build in Public）",
+            "weight": 1.0
+        },
+        {
+            "topic": "Web Security / Application Security (OWASP, Secure Coding, Vulnerability Research)",
+            "weight": 1.0
+        },
+        {
+            "topic": "Offensive Security (Penetration Testing, Exploit Development, Bug Bounty)",
+            "weight": 1.0
+        },
+        {
+            "topic": "Defensive Security (Incident Response, DFIR, Threat Intelligence, SOC)",
+            "weight": 1.0
+        },
+        {
+            "topic": "Cloud & Infrastructure Security (AWS/GCP/Azure Security, Kubernetes Security, DevSecOps)",
+            "weight": 1.0
+        },
+        {
+            "topic": "Identity & Access Management (IAM, Zero Trust, Authentication/Authorization)",
+            "weight": 1.0
+        },
+        {
+            "topic": "Governance, Risk, and Compliance (GRC, Security Policies, Privacy)",
+            "weight": 1.0
+        },
+        {
+            "topic": "Security News (Breaches, Advisories from JPCERT/CC, IPA, CISA)",
+            "weight": 1.0
+        },
+        {
+            "topic": "AI Security (LLM Security, Adversarial Machine Learning)",
+            "weight": 1.0
+        },
+        {
+            "topic": "Enterprise Security Solutions & Platforms (EDR, XDR, SIEM, CWPP, CrowdStrike, Splunk, Trend Micro Deep Security, Cybereason)",
+            "weight": 1.0
+        }
     ],
     "languages": [
         "Japanese",

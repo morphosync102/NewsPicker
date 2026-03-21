@@ -13,7 +13,12 @@ export interface ScoredArticle extends Article {
     summary: string;    // 1-sentence summary
 }
 
+export interface Interest {
+    topic: string;
+    weight: number; // 0.0 to 1.0
+}
+
 export interface Persona {
-    interests: string[];
+    interests: Interest[];
     languages: string[];
 }
