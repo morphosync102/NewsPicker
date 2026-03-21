@@ -17,21 +17,14 @@ description: "トレンドネタ収集（NewsPicker連携）"
 
 ## ユーザープロファイル
 
-`data/persona.json` を読み込み、以下の興味領域と重み（Weight: 0.0〜1.0）を理解する：
-- AI（開発とセキュリティへの応用） [Weight: 1.0]
-- Webセキュリティ/ハッキング（OWASP、脆弱性、サプライチェーン攻撃） [Weight: 1.0]
-- キャリア/人生哲学（経済的自由、外資転職、Build in Public） [Weight: 1.0]
-- Web Security / Application Security (OWASP, Secure Coding, Vulnerability Research) [Weight: 1.0]
-- Offensive Security (Penetration Testing, Exploit Development, Bug Bounty) [Weight: 1.0]
-- Defensive Security (Incident Response, DFIR, Threat Intelligence, SOC) [Weight: 1.0]
-- Cloud & Infrastructure Security (AWS/GCP/Azure Security, Kubernetes Security, DevSecOps) [Weight: 1.0]
-- Identity & Access Management (IAM, Zero Trust, Authentication/Authorization) [Weight: 1.0]
-- Governance, Risk, and Compliance (GRC, Security Policies, Privacy) [Weight: 1.0]
-- Security News (Breaches, Advisories from JPCERT/CC, IPA, CISA) [Weight: 1.0]
-- AI Security (LLM Security, Adversarial Machine Learning) [Weight: 1.0]
-- Enterprise Security Solutions & Platforms (EDR, XDR, SIEM, CWPP, CrowdStrike, Splunk, Trend Micro Deep Security, Cybereason) [Weight: 1.0]
+`data/persona.json` を唯一のSSoT（情報源）として読み込む。
+このJSONファイル内には、ユーザーの興味領域（トピック）とその関心の強さを示す重み（Weight: `0.0`〜`1.0`）が配列で定義されている。
 
-※上記は初期値。毎日の学習（読んだ記事・読まなかった記事の分析）により、トピックの重みが `±0.01` ずつ動的に変動する。重みが `0.1` を下回ったトピックは削除される。
+**学習による自動更新仕様:**
+- 毎日の学習パッチ（読んだ記事・読まなかった記事の分析）により、トピックの重みが `±0.01` ずつ動的に変動する。
+- 重みが `0.1` を下回ったトピックは自動的にリストから削除される。
+- 新しい傾向が見つかった場合は新規トピックとして自動追加されることもある。
+- 手動で興味を追加したい場合は、直接 `data/persona.json` を編集して新しいトピック（Weight `1.0` 推奨）を追加する。
 
 ## データソース
 
