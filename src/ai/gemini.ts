@@ -86,7 +86,10 @@ ${articles.map(a => `Title: ${a.title}\nURL: ${a.url}\nSource: ${a.source}\nScor
 
 export async function learnFromIssue(issueBody: string, currentPersona: Persona): Promise<Persona> {
     const genAI = getGemini();
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
+    const model = genAI.getGenerativeModel({
+        model: "gemini-2.5-flash-lite",
+        generationConfig: { responseMimeType: "application/json" }
+    });
 
     const prompt = `あなたはユーザーの読書傾向を分析し、興味関心プロファイルを長期的に微調整するAIです。
 
