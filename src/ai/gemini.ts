@@ -21,7 +21,7 @@ ${persona.interests.join('\n')}
 【対応言語】
 ${persona.languages.join(', ')}
 
-以下の記事リストを分析し、ユーザーの興味に合う上位15件を選んでください。
+以下の記事リストを分析し、ユーザーの興味に合う上位30件を選んでください。
 各記事について以下の情報を付与してください：
 
 - interest: 興味度を★で表現
@@ -80,7 +80,7 @@ ${articles.map(a => `Title: ${a.title}\nURL: ${a.url}\nSource: ${a.source}\nScor
 
     return results
         .sort((a, b) => (b.score || 0) - (a.score || 0))
-        .slice(0, 15);
+        .slice(0, 30);
 }
 
 export async function learnFromIssue(issueBody: string, currentPersona: Persona): Promise<Persona> {

@@ -38,7 +38,7 @@ function getSourceTag(a: ScoredArticle): string {
 
 function formatArticleLine(a: ScoredArticle): string {
     const source = getSourceTag(a);
-    return `- [ ] [${a.title}](${a.commentsUrl || a.url}) | \`${source}\` | ${a.category} | ${a.memo}\n`;
+    return `- [ ] **[${a.title}](${a.commentsUrl || a.url})** \`${source}\` / ${a.category} / ${a.memo}\n`;
 }
 
 function buildIssueBody(scored: ScoredArticle[], persona: Persona): string {
@@ -65,9 +65,6 @@ function buildIssueBody(scored: ScoredArticle[], persona: Persona): string {
         for (const a of low) md += formatArticleLine(a);
         md += `\n`;
     }
-
-    md += `---\n`;
-    md += `\n*現在のペルソナ: ${persona.interests.join(', ')}*\n`;
 
     return md;
 }
@@ -123,7 +120,8 @@ async function handleCreateIssue() {
         throw new Error("AI scoring returned 0 articles.");
     }
 
-    const dateStr = new Date().toISOString().split('T')[0];
+    const jstDate = new Date(Date.now() + 9 * 60 * 60 * 1000);
+    const dateStr = jstDate.toISOString().split('T')[0];
     const markdown = buildIssueBody(scored, persona);
 
     console.log("[4/4] Creating GitHub Issue...");
