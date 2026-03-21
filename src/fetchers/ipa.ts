@@ -18,7 +18,7 @@ export async function fetchIPA(): Promise<Article[]> {
                 articles.push({
                     title,
                     url: articleUrl,
-                    source: 'Hatena'
+                    source: 'IPA'
                 });
             }
         });

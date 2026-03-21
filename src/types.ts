@@ -1,7 +1,7 @@
 export interface Article {
     title: string;
     url: string;
-    source: 'Hatena' | 'HackerNews' | 'Reddit';
+    source: string;
     score?: number;
     commentsUrl?: string;
 }

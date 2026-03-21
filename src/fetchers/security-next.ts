@@ -18,7 +18,7 @@ export async function fetchSecurityNext(): Promise<Article[]> {
                 articles.push({
                     title,
                     url: articleUrl,
-                    source: 'Hatena' // SecurityNext扱い（型の互換のため）
+                    source: 'SecurityNext'
                 });
             }
         });

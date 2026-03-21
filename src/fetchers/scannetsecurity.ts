@@ -18,7 +18,7 @@ export async function fetchScanNetSecurity(): Promise<Article[]> {
                 articles.push({
                     title,
                     url: articleUrl,
-                    source: 'Hatena'
+                    source: 'ScanNetSecurity'
                 });
             }
         });

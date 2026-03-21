@@ -3,7 +3,6 @@ import * as path from 'path';
 import { fetchHatena } from './fetchers/hatena';
 import { fetchHackerNews } from './fetchers/hackernews';
 import { fetchSecurityNext } from './fetchers/security-next';
-import { fetchJPCert } from './fetchers/jpcert';
 import { fetchScanNetSecurity } from './fetchers/scannetsecurity';
 import { fetchIPA } from './fetchers/ipa';
 import { scoreArticles, learnFromIssue } from './ai/gemini';
@@ -28,10 +27,9 @@ function savePersona(persona: Persona) {
 }
 
 function getSourceTag(a: ScoredArticle): string {
-    if (a.url.includes('security-next')) return 'SEC';
-    if (a.url.includes('jpcert.or.jp')) return 'JPCERT';
-    if (a.url.includes('scan.netsecurity.ne.jp')) return 'SCAN';
-    if (a.url.includes('ipa.go.jp')) return 'IPA';
+    if (a.source === 'SecurityNext') return 'SEC';
+    if (a.source === 'ScanNetSecurity') return 'SCAN';
+    if (a.source === 'IPA') return 'IPA';
     if (a.source === 'HackerNews') return 'HN';
     return 'はてブ';
 }
@@ -88,18 +86,16 @@ async function handleCreateIssue() {
     let hatena: Article[] = [];
     let hn: Article[] = [];
     let secNext: Article[] = [];
-    let jpcert: Article[] = [];
     let scannet: Article[] = [];
     let ipa: Article[] = [];
 
-    try { hatena = await fetchHatena(); console.log(`  - Hatena: ${hatena.length} articles`); } catch (e) { console.error("  - Hatena fetch FAILED:", e); }
+    try { hatena = (await fetchHatena()).sort(() => 0.5 - Math.random()).slice(0, 20); console.log(`  - Hatena: ${hatena.length} articles (Limited)`); } catch (e) { console.error("  - Hatena fetch FAILED:", e); }
     try { hn = await fetchHackerNews(); console.log(`  - HackerNews: ${hn.length} articles`); } catch (e) { console.error("  - HackerNews fetch FAILED:", e); }
     try { secNext = await fetchSecurityNext(); console.log(`  - SecurityNext: ${secNext.length} articles`); } catch (e) { console.error("  - SecurityNext fetch FAILED:", e); }
-    try { jpcert = await fetchJPCert(); console.log(`  - JPCERT/CC: ${jpcert.length} articles`); } catch (e) { console.error("  - JPCERT/CC fetch FAILED:", e); }
     try { scannet = await fetchScanNetSecurity(); console.log(`  - ScanNetSecurity: ${scannet.length} articles`); } catch (e) { console.error("  - ScanNetSecurity fetch FAILED:", e); }
     try { ipa = await fetchIPA(); console.log(`  - IPA: ${ipa.length} articles`); } catch (e) { console.error("  - IPA fetch FAILED:", e); }
 
-    const allArticles = [...hatena, ...hn, ...secNext, ...jpcert, ...scannet, ...ipa];
+    const allArticles = [...hatena, ...hn, ...secNext, ...scannet, ...ipa];
     console.log(`[2/4] Total articles fetched: ${allArticles.length}`);
 
     if (allArticles.length === 0) {
